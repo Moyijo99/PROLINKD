@@ -1,26 +1,21 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
 from config import Config
+from extensions import db, bcrypt, jwt
 
 # Initialize Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Initialize extensions
-db = SQLAlchemy(app)  # Initialize db first
-bcrypt = Bcrypt(app)
-jwt = JWTManager(app)
+# Initialize extensions with the app
+db.init_app(app)
+bcrypt.init_app(app)
+jwt.init_app(app)
 
-# Import routes after db initialization
+# Import routes after initializing extensions
 from routes.auth import auth_blueprint
 from routes.professionals import professionals_blueprint
 from routes.bookings import bookings_blueprint
 from routes.reviews import reviews_blueprint
-
-# Import models after db initialization to avoid circular import
-from models import User, Professional, Booking, Review
 
 # Register blueprints
 app.register_blueprint(auth_blueprint, url_prefix='/api/auth')
