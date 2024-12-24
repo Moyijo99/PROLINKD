@@ -48,3 +48,30 @@ def get_professional_reviews(professional_id):
         }
         for r in reviews
     ]), 200
+
+
+# New Endpoint 2: Delete a Review
+@reviews_blueprint.route('/<int:review_id>', methods=['DELETE'])
+def delete_review(review_id):
+    """
+    Delete a review by ID.
+    """
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({"message": "Review not found"}), 404
+    
+    professional = Professional.query.get(review.professional_id)
+    db.session.delete(review)
+    db.session.commit()
+
+    # Recalculate the professional's rating
+    all_reviews = Review.query.filter_by(professional_id=review.professional_id).all()
+    if all_reviews:
+        new_rating = sum([r.rating for r in all_reviews]) / len(all_reviews)
+        professional.rating = new_rating
+    else:
+        professional.rating = 0
+        professional.reviews_count = 0
+    
+    db.session.commit()
+    return jsonify({"message": "Review deleted successfully"}), 200
